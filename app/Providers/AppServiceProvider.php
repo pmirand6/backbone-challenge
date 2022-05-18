@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Repository\ZipCodeRepository;
+use App\Repository\ZipCodeRepositoryContract;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -14,6 +16,7 @@ class AppServiceProvider extends ServiceProvider
     public function register()
     {
         //
+        $this->app->bind(ZipCodeRepositoryContract::class, ZipCodeRepository::class);
     }
 
     /**
