@@ -3,49 +3,82 @@ version: "3.8"
 # Services definitions
 #
 services:
-  app:
-    image: kooldev/php:8.1-nginx
-    ports:
-      - "${KOOL_APP_PORT:-8120}:80"
-    environment:
-      ASUSER: "${KOOL_ASUSER:-0}"
-      UID: "${UID:-0}"
-    volumes:
-      - .:/app:delegated
-    networks:
-      - kool_local
-      - kool_global
-  database:
-    image: postgres:13-alpine
-    ports:
-      - "${KOOL_DATABASE_PORT:-5433}:5432"
-    environment:
-      POSTGRES_DB: "backbone_challenge"
-      POSTGRES_USER: "${DB_USERNAME-user}"
-      POSTGRES_PASSWORD: "${DB_PASSWORD-pass}"
-      POSTGRES_HOST_AUTH_METHOD: "trust"
-    volumes:
-      - d_backbone_challenge:/var/lib/postgresql/data:delegated
-    networks:
-      - kool_local
-    healthcheck:
-      test: ["CMD", "pg_isready", "-q", "-d", "$DB_DATABASE", "-U", "$DB_USERNAME"]
-  cache:
-    image: redis:6-alpine
-    volumes:
-      - cache:/data:delegated
-    networks:
-      - kool_local
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+
+    app_nginx:
+        container_name: app_nginx
+        image: nginx
+        restart: always
+        ports:
+            - "${NGINX_PORT-2507}:80"
+        volumes:
+            - ./configs-docker/nginx:/etc/nginx/conf.d
+            - ./public:/app/app/public
+        networks:
+            backbone_local:
+                aliases:
+                    - "app.local"
+        depends_on:
+            - app
+    app:
+        container_name: app
+        build:
+            context: .
+            dockerfile: ./Dockerfile
+            args:
+                USERNAME: ${USER_NAME-1000}
+                USERID: ${USER_ID-1000}
+        ports:
+            - "${KOOL_APP_PORT:-8120}:80"
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        environment:
+            PHP_IDE_CONFIG: "serverName=app.local"
+        volumes:
+            - .:/app:delegated
+        networks:
+            - backbone_local
+    database:
+        image: postgres:13-alpine
+        ports:
+            - "${KOOL_DATABASE_PORT:-5433}:5432"
+        environment:
+            POSTGRES_DB: "backbone_challenge"
+            POSTGRES_USER: "${DB_USERNAME-user}"
+            POSTGRES_PASSWORD: "${DB_PASSWORD-pass}"
+            POSTGRES_HOST_AUTH_METHOD: "trust"
+        volumes:
+            - d_backbone_challenge:/var/lib/postgresql/data:delegated
+        networks:
+            - backbone_local
+        healthcheck:
+            test: [ "CMD", "pg_isready", "-q", "-d", "$DB_DATABASE", "-U", "$DB_USERNAME" ]
+    cache:
+        image: redis:6-alpine
+        volumes:
+            - cache:/data:delegated
+        networks:
+            - backbone_local
+        healthcheck:
+            test: [ "CMD", "redis-cli", "ping" ]
+    mongo:
+        container_name: mongo
+        image: mongo
+        ports:
+            - '27019:27017'
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: '${DB_USERNAME}'
+            MONGO_INITDB_ROOT_PASSWORD: '${DB_PASSWORD}'
+        networks:
+            - backbone_local
+        volumes:
+            - d_backbone_mongo_challenge:/docker-entrypoint-initdb.d/mongo-init.js:ro
 #
 # Networks definitions
 #
 networks:
-  kool_local:
-  kool_global:
-    external: true
-    name: "${KOOL_GLOBAL_NETWORK:-kool_global}"
+    backbone_local:
+        driver: bridge
 volumes:
-  d_backbone_challenge:
-  cache:
+    d_backbone_challenge:
+    d_backbone_mongo_challenge:
+    cache:
