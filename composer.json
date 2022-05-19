@@ -8,6 +8,7 @@
         "php": "^8.0.2",
         "guzzlehttp/guzzle": "^7.2",
         "laravel/framework": "^9.11",
+        "laravel/octane": "^1.2",
         "laravel/sanctum": "^2.14.1",
         "laravel/tinker": "^2.7"
     },
@@ -44,6 +45,10 @@
         ],
         "post-create-project-cmd": [
             "@php artisan key:generate --ansi"
+        ],
+        "warmup": [
+            "php artisan config:cache",
+            "php artisan route:cache"
         ]
     },
     "extra": {
