@@ -20,5 +20,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::get('/', function () {
-    return User::where('email', request()->email)->first();
+    return User::where('id', request()->id)->first();
 });
