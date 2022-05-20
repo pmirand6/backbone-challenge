@@ -112,18 +112,18 @@ class ZipCodeService
 
             $zip = [
                 'zip_code' => $row[0],
-                'locality' => $row[5],
+                'locality' => strtoupper($row[5]),
             ];
 
             $federalEntity = [
                 'key' => (int)$row[7],
-                'name' => $row[4],
+                'name' => strtoupper($row[4]),
                 'code' => (int)$row[9] ?? null,
             ];
 
             $settlements = [
                 'key' => (int)trim($row[12]),
-                'name' => $row[1],
+                'name' => strtoupper($row[1]),
                 'zone_type' => $row[13],
                 'settlement_type' => [
                     'name' => ucfirst($row[2]),
