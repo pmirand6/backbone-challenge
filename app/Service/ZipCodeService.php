@@ -9,6 +9,7 @@ namespace App\Service;
 use App\Models\ZipCode;
 use App\Repository\ZipCodeRepository;
 use App\Repository\ZipCodeRepositoryContract;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -36,9 +37,9 @@ class ZipCodeService
      * @param string $zipCode
      * @return ZipCode|null
      */
-    public function getZipCode(string $zipCode): ?ZipCode
+    public function getZipCode(string $zipCode)
     {
-        return $this->zipCodeRepository->findOneBy(['zipCode' => $zipCode]);
+        return $this->zipCodeRepository->findByZipCode($zipCode);
     }
 
     public function downloadFileZipCodes(): bool
@@ -91,9 +92,14 @@ class ZipCodeService
 
     }
 
-    public function upsertZipCodes()
+    /**
+     * Upsert Zip Codes from listener
+     * @return void
+     */
+    public function upsertZipCodes(): void
     {
         $counter = 0;
+        $zipArray = [];
         $file = fopen(resource_path('data/converted.txt'), 'r+');
         while ($line = stream_get_line($file, 1024 * 1024, PHP_EOL)) {
             $counter++;
@@ -112,29 +118,51 @@ class ZipCodeService
             $zip = [
                 'zip_code' => $row[0],
                 'locality' => $row[5],
-                'federal_entity' => [
-                    'key' => (int)$row[7],
-                    'name' => $row[4],
-                    'code' => (int)$row[9] ?? null,
-                ],
-                'settlements' => [
-                    [
-                        'key' => (int)trim($row[12]),
-                        'name' => $row[1],
-                        'zone_type' => $row[13],
-                        'settlement_type' => [
-                            'name' => ucfirst($row[2]),
-                        ],
-                    ],
-                ],
-                'municipality' => [
-                    'key' => (int)$row[11],
-                    'name' => $row[3],
+            ];
+
+            $federalEntity = [
+                'key' => (int)$row[7],
+                'name' => $row[4],
+                'code' => (int)$row[9] ?? null,
+            ];
+
+            $settlements = [
+                'key' => (int)trim($row[12]),
+                'name' => $row[1],
+                'zone_type' => $row[13],
+                'settlement_type' => [
+                    'name' => ucfirst($row[2]),
                 ],
             ];
+
+            $municipality = [
+                'key' => (int)$row[11],
+                'name' => $row[3],
+            ];
+
+
+            if(!isset($zipArray[$zip['zip_code']])) {
+                $zipArray[$zip['zip_code']] = [
+                    'zip_code' => $zip['zip_code'],
+                    'locality' => $zip['locality'],
+                    'federal_entity' => $federalEntity,
+                    'settlements' => [
+                        $settlements,
+                    ],
+                    'municipality' => $municipality,
+                ];
+            } else {
+                $zipArray[$zip['zip_code']]['federal_entity'] = $federalEntity;
+                $zipArray[$zip['zip_code']]['settlements'][] = $settlements;
+                $zipArray[$zip['zip_code']]['municipality'] = $municipality;
+            }
         }
         fclose($file);
 
-        return "todo ok";
+        $chunkedZipArray = array_chunk($zipArray, 1000);
+
+        foreach ($chunkedZipArray as $chunk) {
+           $this->zipCodeRepository->upsertZipCodes($chunk);
+        }
     }
 }

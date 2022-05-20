@@ -13,7 +13,7 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('zip_code', function ($collection) {
+        Schema::create('zip_codes', function ($collection) {
             $collection->index('zip_code');
         });
     }

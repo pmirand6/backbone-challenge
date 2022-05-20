@@ -9,4 +9,12 @@ namespace App\Repository;
 interface ZipCodeRepositoryContract
 {
 
+    /**
+     * @param string $zipCode
+     * @return mixed
+     */
+    public function findByZipCode(string $zipCode): array;
+
+    public function upsertZipCodes(array $data);
 }
+

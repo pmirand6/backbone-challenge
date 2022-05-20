@@ -14,7 +14,7 @@ class SaveZipCodes
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(private ZipCodeService $zipCodeService)
     {
         //
     }
@@ -22,11 +22,10 @@ class SaveZipCodes
     /**
      * Handle the event.
      *
-     * @param UpsertZipCodesFromCommand $event
      * @return void
      */
-    public function handle(UpsertZipCodesFromCommand $event, ZipCodeService $zipCodeService)
+    public function handle()
     {
-        $zipCodeService->upsertZipCodes();
+        $this->zipCodeService->upsertZipCodes();
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Service\ZipCodeService;
+use Illuminate\Http\JsonResponse;
 
 class GetZipCodesFileController extends Controller
 {
@@ -11,8 +12,10 @@ class GetZipCodesFileController extends Controller
     {
     }
 
-    public function __invoke()
+    public function __invoke(string $zipCode)
     {
-        $this->zipCodeService->upsertZipCodes();
+        $result = $this->zipCodeService->getZipCode($zipCode);
+
+        return response()->json($result);
     }
 }
