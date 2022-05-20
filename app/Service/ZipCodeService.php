@@ -9,14 +9,19 @@ namespace App\Service;
 use App\Models\ZipCode;
 use App\Repository\ZipCodeRepository;
 use App\Repository\ZipCodeRepositoryContract;
+use App\Traits\RemoveDiacritics;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use ZipArchive;
 
+
+
 class ZipCodeService
 {
+
+    use RemoveDiacritics;
     const URL_MAIL = 'https://www.correosdemexico.gob.mx/SSLServicios/ConsultaCP/CodigoPostal_Exportar.aspx';
 
     /**
@@ -41,8 +46,11 @@ class ZipCodeService
     {
         $contents = Http::asForm()
             ->withHeaders([
-                'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+                "Accept" =>
+                    "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
                 'Accept-Language' => 'es-AR,es;q=0.9,es-419;q=0.8,en;q=0.7,en-GB;q=0.6',
+                'Accept-Encoding' => 'gzip, deflate, br',
+                'Sec-Fetch-Dest' => 'document',
             ])
             ->post(self::URL_MAIL, [
                 '__EVENTTARGET' => '',
@@ -116,27 +124,27 @@ class ZipCodeService
 
             $zip = [
                 'zip_code' => $row[0],
-                'locality' => strtoupper($row[5]),
+                'locality' => strtoupper($this->diacriticsChallenge($row[5])),
             ];
 
             $federalEntity = [
                 'key' => (int)$row[7],
-                'name' => strtoupper($row[4]),
+                'name' => strtoupper($this->diacriticsChallenge($row[4])),
                 'code' => (int)$row[9] ?? null,
             ];
 
             $settlements = [
                 'key' => (int)trim($row[12]),
-                'name' => strtoupper($row[1]),
-                'zone_type' => $row[13],
+                'name' => strtoupper($this->diacriticsChallenge($row[1])),
+                'zone_type' => strtoupper($this->diacriticsChallenge($row[13])),
                 'settlement_type' => [
-                    'name' => ucfirst($row[2]),
+                    'name' => ucfirst($this->diacriticsChallenge($row[2])),
                 ],
             ];
 
             $municipality = [
                 'key' => (int)$row[11],
-                'name' => $row[3],
+                'name' => $this->diacriticsChallenge($row[3]),
             ];
 
 
