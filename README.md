@@ -1,64 +1,96 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
+# Backbone Challenge
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+The objetive of this challenge is to build an API Rest solution, to perform a response
+like [this](https://jobs.backbonesystems.io/api/zip-codes/99960)
 
-## About Laravel
+In order to do this, I made a Laravel 9 Application , and a MongoDB database. 
+Also, for improve performance, I used [Laravel Octane](https://laravel.com/docs/9.x/octane) configuration.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+The application is hosted on [Digital Ocean](https://www.digitalocean.com/).
+The **droplet** characteristics are:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+* **Memory**: `512MB`
+* **Disk**: `20GB`
+* **CPU**: `1 vCPU`
+* **IP**: `165.232.132.59`
+* **PHP Version**: `8.1`
+* **Laravel Version**: `9.0`
+* **Database**: `MongoDB`
+* **Database Version**: `4.2`
+* **Database Size**: `20GB`
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
-## Learning Laravel
+### Getting Zip Codes 
+For getting the zip code data, I made a simple command to connect to the service and 
+launch an event for populate the database. Also It handle the encoding of the data, converting 
+to UTF8 `(ISO-8859-1 is the original encoding).`
+#### The command for getting the data into:
+```bash
+~$ php artisan update-zip-codes
+```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+You can see the code [here](app/Console/Commands/UpdateZipCodes.php)
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Query the data
+The application has an endpoint to query the data: `/api/zip-codes/{zip_code}`
+It will return the object requested, if it exists:
 
-## Laravel Sponsors
+```json
+{
+    "zip_code": "01210",
+    "federal_entity": {
+        "key": 9,
+        "name": "Ciudad de México",
+        "code": 0
+    },
+    "locality": "Ciudad de México",
+    "municipality": {
+        "key": 10,
+        "name": "Álvaro Obregón"
+    },
+    "settlements": [
+        {
+            "key": 82,
+            "name": "Santa Fe",
+            "zone_type": "Urbano",
+            "settlement_type": {
+                "name": "Pueblo"
+            }
+        }
+    ]
+}
+``` 
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+## Performance
 
-### Premium Partners
+For this example I made the request:
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+```bash
+~$ curl --location --request GET 'http://app.local:2507/api/zip-codes/01210'
+~$ curl --location --request GET 'http://165.232.132.59/api/zip-codes/01210'
+```
 
-## Contributing
+To measure the local performance I used [Postman](https://www.getpostman.com/):
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+![img_3.png](images/img_3.png)
 
-## Code of Conduct
+#### TL;DR: Mongodb Improves cache, so the request is faster than the previous one.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+![img_2.png](images/img_2.png)
 
-## Security Vulnerabilities
+To measure the response time of the Digital Ocean droplet I used [Blazemeter](https://blazemeter.com):
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+![img.png](images/img.png)
 
-## License
+As mentioned, here we can see the improve of the request time with the use of the cache.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+![img_4.png](images/img_4.png)
+
+Also I use [Loader.io](https://loader.io/) to measure the response time of the application. You can see the results [here](https://bit.ly/3LyrTde)
+
+![img_6.png](images/img_6.png)
+
+![img_5.png](images/img_5.png)
+
+
+

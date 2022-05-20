@@ -36,10 +36,8 @@ RUN set -ex; \
     soap \
     zip; \
     pecl install -o -f redis &&\
-    pecl install xdebug && \
     docker-php-ext-enable \
-    redis \
-    xdebug; \
+    redis; \
     rm -rf /tmp/pear;
 
 RUN apk --update add --virtual build-dependencies build-base openssl-dev autoconf \
@@ -71,7 +69,7 @@ RUN apk --update add --virtual build-dependencies build-base openssl-dev autocon
 
 COPY ./configs-docker/php.ini /usr/local/etc/php/php.ini
 COPY ./configs-docker/fpm.conf /usr/local/etc/php-fpm.d/www.conf
-COPY ./configs-docker/xdebug.ini /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+#COPY ./configs-docker/xdebug.ini /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
 # directorio de trabajo
 WORKDIR /app
