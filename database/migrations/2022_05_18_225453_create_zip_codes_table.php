@@ -13,9 +13,8 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('zip_codes', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+        Schema::create('zip_code', function ($collection) {
+            $collection->index('zip_code');
         });
     }
 
