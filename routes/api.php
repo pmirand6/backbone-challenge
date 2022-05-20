@@ -17,8 +17,12 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+Route::get('/', function () {
+    return response()->json([
+        'message' => 'Backbone Challenge',
+        'author' => 'Pablo Miranda',
+        'github' => 'https://github.com/pmirand6',
+        'url' => 'https://github.com/pmirand6/backbone-challenge',
+    ]);
 });
-
 Route::get('/zip-codes/{zip_code}', GetZipCodesFileController::class);

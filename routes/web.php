@@ -14,5 +14,10 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return response()->json([
+        'message' => 'Backbone Challenge',
+        'author' => 'Pablo Miranda',
+        'github' => 'https://github.com/pmirand6',
+        'url' => 'https://github.com/pmirand6/backbone-challenge',
+    ]);
 });
