@@ -18,26 +18,21 @@ use ZipArchive;
 class ZipCodeService
 {
     const URL_MAIL = 'https://www.correosdemexico.gob.mx/SSLServicios/ConsultaCP/CodigoPostal_Exportar.aspx';
-    /**
-     * @var ZipCodeRepository
-     */
-    private $zipCodeRepository;
 
     /**
      * ZipCodeService constructor.
      *
      * @param ZipCodeRepositoryContract $zipCodeRepository
      */
-    public function __construct(ZipCodeRepositoryContract $zipCodeRepository)
+    public function __construct(private readonly ZipCodeRepositoryContract $zipCodeRepository)
     {
-        $this->zipCodeRepository = $zipCodeRepository;
     }
 
     /**
      * @param string $zipCode
-     * @return ZipCode|null
+     * @return array
      */
-    public function getZipCode(string $zipCode)
+    public function getZipCode(string $zipCode): array
     {
         return $this->zipCodeRepository->findByZipCode($zipCode);
     }
