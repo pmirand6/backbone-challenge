@@ -29,16 +29,26 @@ class UpdateZipCodes extends Command
      */
     public function handle(ZipCodeService $zipCodeService)
     {
+        $this->comment('Updating zip codes...');
+        $this->info('Attempting to download zip codes...');
         $result = $zipCodeService->downloadFileZipCodes();
-
         if ($result) {
+            $this->info('Zip codes downloaded');
+            $this->info('Encoding to utf-8...');
             $encode = $zipCodeService->extractAndEncode();
-
-            if($encode) {
+            $this->info('Encoding done!');
+            if ($encode) {
+                $this->info('Event Dispatched!');
                 UpsertZipCodesFromCommand::dispatch();
+                $this->info('The command was successful!');
+                return 1;
+            } else {
+                $this->error('Fail to encode!');
+                return 0;
             }
         }
 
+        $this->error('The command was unsuccessful!');
         return 0;
     }
 

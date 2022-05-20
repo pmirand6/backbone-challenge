@@ -89,13 +89,17 @@ class ZipCodeService
 
     /**
      * Upsert Zip Codes from listener
-     * @return void
+     * @return bool
      */
-    public function upsertZipCodes(): void
+    public function upsertZipCodes(): bool
     {
         $counter = 0;
         $zipArray = [];
         $file = fopen(resource_path('data/converted.txt'), 'r+');
+        if(!$file){
+            Log::error('Error opening file');
+            return false;
+        }
         while ($line = stream_get_line($file, 1024 * 1024, PHP_EOL)) {
             $counter++;
             //skip first text and columns headers
@@ -159,5 +163,7 @@ class ZipCodeService
         foreach ($chunkedZipArray as $chunk) {
            $this->zipCodeRepository->upsertZipCodes($chunk);
         }
+
+        return true;
     }
 }
